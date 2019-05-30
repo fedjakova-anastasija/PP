@@ -11,19 +11,16 @@ namespace lab03.CriticalSection
         public void Enter()
         {
             bool success = false;
-            for (int i = 0; i < _count; i++)
+            while (!success)
             {
-                if (_waitHandler.WaitOne(10))
+                for (int i = 0; i < _count; i++)
                 {
-                    success = true;
-                    break;
+                    if (_waitHandler.WaitOne(10))
+                    {
+                        return;
+                    }
                 }
-            }
-
-            if (!success)
-            {
                 Thread.Sleep(10);
-                _waitHandler.WaitOne();
             }
         }
 
@@ -41,23 +38,21 @@ namespace lab03.CriticalSection
         {
             var start = DateTime.UtcNow;
             var success = false;
-            for (int i = 0; i < _count; i++)
+            while (start.AddMilliseconds(timeout) > DateTime.UtcNow)
             {
-                if (_waitHandler.WaitOne(10))
+                for (int i = 0; i < _count; i++)
                 {
-                    success = true;
-                    break;
+                    if (_waitHandler.WaitOne(10))
+                    {
+                        return !success;
+                    }
+                    if (start.AddMilliseconds(timeout) <= DateTime.UtcNow)
+                    {
+                        return success;
+                    }                    
                 }
-                if (start.AddMilliseconds(timeout) <= DateTime.UtcNow)
-                {
-                    break;
-                }
-            }
-            if (!success)
-            {
                 Thread.Sleep(10);
             }
-
             return success;
         }
 
